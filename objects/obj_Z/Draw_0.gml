@@ -1,0 +1,3 @@
+ZDRAW_BEGIN
+	ZDrawSelf();
+ZDRAW_END
