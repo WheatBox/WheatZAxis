@@ -10,6 +10,15 @@ ZDRAW_BEGIN
 
 	ZDrawCollisionCylinder(x, y, z, z + height, 40);
 	// ZDrawCollisionCube(x - 40, y - 40, z, x + 40, y + 40, z + height);
+	
+	var strInCollision = $"{z} ~ {z + height}";
+	var zStrInCollision = z + height / 2;
+	ZDrawSetAlpha(zStrInCollision, 0.7);
+	ZDrawSetColor(zStrInCollision, c_black);
+	ZDrawRectangle(mouse_x, mouse_y, mouse_x + string_width(strInCollision), mouse_y + string_height(strInCollision), zStrInCollision, false);
+	ZDrawSetColor(zStrInCollision, c_white);
+	ZDrawText(mouse_x, mouse_y, zStrInCollision, strInCollision);
+	ZDrawSetAlpha(zStrInCollision, 1);
 
 ZDRAW_END
 
@@ -22,10 +31,9 @@ ds_list_destroy(_list);
 
 ZDRAW_BEGIN
 
-	ZDrawInsertCommand(9999, draw_set_color, [c_black]);
-	ZDrawInsertCommand(9999, draw_text, [mouse_x, mouse_y + 20, str]);
-	ZDrawInsertCommand(9999, draw_text, [mouse_x, mouse_y - 20, $"ZCollisionCylinderList() returns {_len}"]);
-	ZDrawInsertCommand(9999, draw_text, [mouse_x, mouse_y - 40, $"{z} ~ {z + height}"]);
-	ZDrawInsertCommand(9999, draw_set_color, [c_white]);
+	ZDrawSetColor(9999, c_black);
+	ZDrawInsertCommand(9999, draw_text, [mouse_x, mouse_y + 40, str]);
+	ZDrawInsertCommand(9999, draw_text, [mouse_x, mouse_y + 20, $"ZCollisionCylinderList() returns {_len}"]);
+	ZDrawSetColor(9999, c_white);
 
 ZDRAW_END

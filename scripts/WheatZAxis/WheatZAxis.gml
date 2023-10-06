@@ -288,6 +288,78 @@ function ZDrawPointColorAlpha(_x, _y, _z, col, alpha) {
 	ZDrawInsertCommand(_z, _func, [_x, YZ(_y, _z), col, alpha]);
 }
 
+/* ZDrawText */
+
+function ZDrawText(_x, _y, _z, str) {
+	ZDrawInsertCommand(_z, draw_text, [_x, YZ(_y, _z), str]);
+}
+
+function ZDrawTextColor(_x, _y, _z, str, col1, col2, col3, col4, alpha) {
+	ZDrawInsertCommand(_z, draw_text_color, [_x, YZ(_y, _z), str, col1, col2, col3, col4, alpha]);
+}
+
+function ZDrawTextExt(_x, _y, _z, str, sep, _w) {
+	ZDrawInsertCommand(_z, draw_text_ext, [_x, YZ(_y, _z), str, sep, _w]);
+}
+
+function ZDrawTextExtColor(_x, _y, _z, str, sep, _w, col1, col2, col3, col4, alpha) {
+	ZDrawInsertCommand(_z, draw_text_ext_color, [_x, YZ(_y, _z), str, sep, _w, col1, col2, col3, col4, alpha]);
+}
+
+function ZDrawTextTransformed(_x, _y, _z, str, xscale, yscale, angle) {
+	ZDrawInsertCommand(_z, draw_text_transformed, [_x, YZ(_y, _z), str, xscale, yscale, angle]);
+}
+
+function ZDrawTextTransformedColor(_x, _y, _z, str, xscale, yscale, angle, col1, col2, col3, col4, alpha) {
+	ZDrawInsertCommand(_z, draw_text_transformed_color, [_x, YZ(_y, _z), str, xscale, yscale, angle, col1, col2, col3, col4, alpha]);
+}
+
+function ZDrawTextExtTransformed(_x, _y, _z, str, sep, _w, xscale, yscale, angle) {
+	ZDrawInsertCommand(_z, draw_text_ext_transformed, [_x, YZ(_y, _z), str, sep, _w, xscale, yscale, angle]);
+}
+
+function ZDrawTextExtTransformedColor(_x, _y, _z, str, sep, _w, xscale, yscale, angle, col1, col2, col3, col4, alpha) {
+	ZDrawInsertCommand(_z, draw_text_ext_transformed_color, [_x, YZ(_y, _z), str, sep, _w, xscale, yscale, angle, col1, col2, col3, col4, alpha]);
+}
+
+/* ZDrawSet */
+
+/// @desc
+/// 给 ZDraw 函数的 draw_set_alpha()，注意会影响到大于该 z 坐标的其它 z 坐标的 ZDraw 函数
+///
+/// _
+///
+/// draw_set_alpha() for ZDraw functions, note that it will affect the ZDraw function of other z coordinates greater than this z coordinate
+function ZDrawSetAlpha(_z, alpha) {
+	ZDrawInsertCommand(_z, draw_set_alpha, [alpha]);
+}
+
+/// @desc
+/// 给 ZDraw 函数的 draw_set_color()，注意会影响到大于该 z 坐标的其它 z 坐标的 ZDraw 函数
+///
+/// _
+///
+/// draw_set_color() for ZDraw functions, note that it will affect the ZDraw function of other z coordinates greater than this z coordinate
+function ZDrawSetColor(_z, col) {
+	ZDrawInsertCommand(_z, draw_set_color, [col]);
+}
+
+function ZDrawSetFont(_z, font) {
+	ZDrawInsertCommand(_z, draw_set_font, [font]);
+}
+
+function ZDrawSetHalign(_z, halign) {
+	ZDrawInsertCommand(_z, draw_set_halign, [halign]);
+}
+
+function ZDrawSetValign(_z, valign) {
+	ZDrawInsertCommand(_z, draw_set_valign, [valign]);
+}
+
+function ZDrawSetCirclePrecision(_z, precision) {
+	ZDrawInsertCommand(_z, draw_set_circle_precision, [precision]);
+}
+
 /* ZCollision */
 
 #macro __ZCOLLISION_HANDLE_INIT \
