@@ -37,6 +37,7 @@
     {"id":{"name":"obj_Z","path":"objects/obj_Z/obj_Z.yy",},},
     {"id":{"name":"spr_Floor","path":"sprites/spr_Floor/spr_Floor.yy",},},
     {"id":{"name":"obj_Mouse","path":"objects/obj_Mouse/obj_Mouse.yy",},},
+    {"id":{"name":"obj_ZDraw","path":"objects/obj_ZDraw/obj_ZDraw.yy",},},
     {"id":{"name":"WheatZAxis","path":"scripts/WheatZAxis/WheatZAxis.yy",},},
     {"id":{"name":"spr_Test","path":"sprites/spr_Test/spr_Test.yy",},},
     {"id":{"name":"obj_Floor","path":"objects/obj_Floor/obj_Floor.yy",},},

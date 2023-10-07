@@ -20,13 +20,14 @@ __gZDrawCommands = []; // { m_z, m_func, m_args }
 
 function __ZDRAW_COMMAND_RUN(element, index) {
 	gpu_set_depth(-element.m_z);
-	method_call(element.m_func, element.m_args);
-	return true;
+	with(element.m_ins) {
+		method_call(element.m_func, element.m_args);
+	}
 }
 
-#macro __ZDRAW_COMMAND_INITED { m_z : _z, m_func : _func, m_args : _args }
+#macro __ZDRAW_COMMAND_INITED { m_z : _z, m_func : _func, m_args : _args, m_ins : _ins }
 globalvar __zDrawCommandZ;
-function ZDrawInsertCommand(_z, _func, _args = []) {
+function ZDrawInsertCommand(_z, _func, _args = [], _ins = id) {
 	static _findFunc = function(element, index) {
 		return __zDrawCommandZ < element.m_z;
 	}
