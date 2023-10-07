@@ -2,9 +2,14 @@
   "resourceType": "GMObject",
   "resourceVersion": "1.0",
   "name": "obj_Floor",
-  "eventList": [],
+  "eventList": [
+    {"resourceType":"GMEvent","resourceVersion":"1.0","name":"","collisionObjectId":null,"eventNum":0,"eventType":8,"isDnD":false,},
+  ],
   "managed": true,
-  "overriddenProperties": [],
+  "overriddenProperties": [
+    {"resourceType":"GMOverriddenProperty","resourceVersion":"1.0","name":"","objectId":{"name":"obj_Z","path":"objects/obj_Z/obj_Z.yy",},"propertyId":{"name":"zHeight","path":"objects/obj_Z/obj_Z.yy",},"value":"50",},
+    {"resourceType":"GMOverriddenProperty","resourceVersion":"1.0","name":"","objectId":{"name":"obj_Z","path":"objects/obj_Z/obj_Z.yy",},"propertyId":{"name":"zOffset","path":"objects/obj_Z/obj_Z.yy",},"value":"10",},
+  ],
   "parent": {
     "name": "Objects",
     "path": "folders/Objects.yy",

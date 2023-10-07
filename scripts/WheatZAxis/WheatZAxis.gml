@@ -364,6 +364,7 @@ function ZDrawSetCirclePrecision(_z, precision) {
 
 #macro __ZCOLLISION_HANDLE_INIT \
 	static _ins = noone, _list = -1, _len = 0, i = 0; \
+	static __visZ = 0, __n1 = 0, __n2 = 0; \
 	_list = ds_list_create();\
 	_len = 
 
@@ -371,7 +372,14 @@ function ZDrawSetCirclePrecision(_z, precision) {
 	for(i = 0; i < _len; i++) { \
 		_ins = _list[| i]; \
 		if(_ins != noone) { \
-			if(InRange(_ins VISIT_Z, z1, z2)) {
+			__visZ = _ins VISIT_Z; \
+			if(__visZ == undefined) { \
+				__n1 = 0; __n2 = 0; \
+			} else { \
+				__n1 = __visZ - _ins.zOffset; \
+				__n2 = __n1 + _ins.zHeight; \
+			} \
+			if(RangeInRange(__n1, __n2, z1, z2)) {
 
 #macro __ZCOLLISION_HANDLE_LIST_TAIL }}} ds_list_destroy(_list); return
 
@@ -486,4 +494,8 @@ function InRange(val, n1, n2) {
 		return val >= n2 && val <= n1;
 	}
 	return val <= n2 && val >= n1;
+}
+
+function RangeInRange(n1, n2, m1, m2) {
+	return abs((n1 + n2) / 2 - (m1 + m2) / 2) <= abs((n1 - n2) / 2) + abs((m1 - m2) / 2);
 }
