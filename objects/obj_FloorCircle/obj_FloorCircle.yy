@@ -1,13 +1,15 @@
 {
   "resourceType": "GMObject",
   "resourceVersion": "1.0",
-  "name": "obj_Movement",
+  "name": "obj_FloorCircle",
   "eventList": [
-    {"resourceType":"GMEvent","resourceVersion":"1.0","name":"","collisionObjectId":null,"eventNum":0,"eventType":3,"isDnD":false,},
-    {"resourceType":"GMEvent","resourceVersion":"1.0","name":"","collisionObjectId":null,"eventNum":0,"eventType":0,"isDnD":false,},
+    {"resourceType":"GMEvent","resourceVersion":"1.0","name":"","collisionObjectId":null,"eventNum":0,"eventType":8,"isDnD":false,},
   ],
   "managed": true,
-  "overriddenProperties": [],
+  "overriddenProperties": [
+    {"resourceType":"GMOverriddenProperty","resourceVersion":"1.0","name":"","objectId":{"name":"obj_Z","path":"objects/obj_Z/obj_Z.yy",},"propertyId":{"name":"zHeight","path":"objects/obj_Z/obj_Z.yy",},"value":"50",},
+    {"resourceType":"GMOverriddenProperty","resourceVersion":"1.0","name":"","objectId":{"name":"obj_Z","path":"objects/obj_Z/obj_Z.yy",},"propertyId":{"name":"zOffset","path":"objects/obj_Z/obj_Z.yy",},"value":"10",},
+  ],
   "parent": {
     "name": "Objects",
     "path": "folders/Objects.yy",
@@ -32,8 +34,8 @@
   "properties": [],
   "solid": false,
   "spriteId": {
-    "name": "spr_Block",
-    "path": "sprites/spr_Block/spr_Block.yy",
+    "name": "spr_Circle",
+    "path": "sprites/spr_Circle/spr_Circle.yy",
   },
   "spriteMaskId": null,
   "visible": true,

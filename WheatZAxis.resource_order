@@ -17,10 +17,13 @@
     {"name":"Timelines","order":8,"path":"folders/Timelines.yy",},
   ],
   "ResourceOrderSettings": [
+    {"name":"obj_FloorCircle","order":5,"path":"objects/obj_FloorCircle/obj_FloorCircle.yy",},
+    {"name":"spr_Floor","order":3,"path":"sprites/spr_Floor/spr_Floor.yy",},
     {"name":"obj_Z","order":1,"path":"objects/obj_Z/obj_Z.yy",},
-    {"name":"spr_Floor","order":1,"path":"sprites/spr_Floor/spr_Floor.yy",},
+    {"name":"spr_Circle","order":1,"path":"sprites/spr_Circle/spr_Circle.yy",},
     {"name":"obj_Mouse","order":2,"path":"objects/obj_Mouse/obj_Mouse.yy",},
     {"name":"obj_ZDraw","order":3,"path":"objects/obj_ZDraw/obj_ZDraw.yy",},
     {"name":"obj_Movement","order":4,"path":"objects/obj_Movement/obj_Movement.yy",},
+    {"name":"spr_Block","order":2,"path":"sprites/spr_Block/spr_Block.yy",},
   ],
 }

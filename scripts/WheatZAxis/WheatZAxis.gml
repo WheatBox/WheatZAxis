@@ -363,6 +363,8 @@ function ZDrawSetCirclePrecision(_z, precision) {
 
 /* ZCollision */
 
+#macro __ZCOLLISION_HANDLE_MAKE_Z1Z2 static z1 = 0, z2 = 0; z1 = _z; z2 = _z
+
 #macro __ZCOLLISION_HANDLE_INIT \
 	static _ins = noone, _list = -1, _len = 0, i = 0; \
 	static __visZ = 0, __n1 = 0, __n2 = 0; \
@@ -384,13 +386,34 @@ function ZDrawSetCirclePrecision(_z, precision) {
 
 #macro __ZCOLLISION_HANDLE_LIST_TAIL }}} ds_list_destroy(_list); return
 
+#macro __ZCOLLISION_HANDLE \
+	__ZCOLLISION_HANDLE_LIST_HEAD \
+		ds_list_destroy(_list); \
+		return _ins; \
+	__ZCOLLISION_HANDLE_LIST_TAIL noone
+
+#macro __ZCOLLISION_HANDLE_LIST \
+	static resLen = 0; \
+	resLen = 0; \
+	__ZCOLLISION_HANDLE_LIST_HEAD \
+		resLen++; \
+		ds_list_add(list, _ins); \
+	__ZCOLLISION_HANDLE_LIST_TAIL resLen
+
 function ZCollisionPoint(_x, _y, _z, obj, prec, notme) {
+	__ZCOLLISION_HANDLE_MAKE_Z1Z2
+	
 	__ZCOLLISION_HANDLE_INIT collision_point_list(_x, _y, obj, prec, notme, _list, false);
 	
-	__ZCOLLISION_HANDLE_LIST_HEAD
-		ds_list_destroy(_list);
-		return _ins;
-	__ZCOLLISION_HANDLE_LIST_TAIL noone;
+	__ZCOLLISION_HANDLE
+}
+
+function ZCollisionPointList(_x, _y, _z, obj, prec, notme, list, ordered) {
+	__ZCOLLISION_HANDLE_MAKE_Z1Z2
+	
+	__ZCOLLISION_HANDLE_INIT collision_point_list(_x, _y, obj, prec, notme, _list, ordered);
+	
+	__ZCOLLISION_HANDLE_LIST
 }
 
 function ZDrawCollisionCylinder(_x, _y, z1, z2, radius, _radius_use_ZtoY = false) {
@@ -431,14 +454,11 @@ function ZCollisionCylinder(_x, _y, z1, z2, radius, obj, prec, notme, _radius_us
 		_len = collision_circle_list(_x, _y, radius, obj, prec, notme, _list, false);
 	}
 	
-	__ZCOLLISION_HANDLE_LIST_HEAD
-		ds_list_destroy(_list);
-		return _ins;
-	__ZCOLLISION_HANDLE_LIST_TAIL noone;
+	__ZCOLLISION_HANDLE
 }
 
 function ZCollisionCylinderList(_x, _y, z1, z2, radius, obj, prec, notme, list, ordered, _radius_use_ZtoY = false) {
-	static resLen = 0, _radFin = 0;
+	static _radFin = 0;
 	
 	__ZCOLLISION_HANDLE_INIT 0;
 	
@@ -449,11 +469,7 @@ function ZCollisionCylinderList(_x, _y, z1, z2, radius, obj, prec, notme, list, 
 		_len = collision_circle_list(_x, _y, radius, obj, prec, notme, _list, ordered);
 	}
 	
-	resLen = 0;
-	__ZCOLLISION_HANDLE_LIST_HEAD
-		resLen++;
-		ds_list_add(list, _ins);
-	__ZCOLLISION_HANDLE_LIST_TAIL resLen;
+	__ZCOLLISION_HANDLE_LIST
 }
 
 function ZDrawCollisionCube(x1, y1, z1, x2, y2, z2) {
@@ -470,22 +486,13 @@ function ZDrawCollisionCube(x1, y1, z1, x2, y2, z2) {
 function ZCollisionCube(x1, y1, z1, x2, y2, z2, obj, prec, notme) {
 	__ZCOLLISION_HANDLE_INIT collision_rectangle_list(x1, y1, x2, y2, obj, prec, notme, _list, false);
 	
-	__ZCOLLISION_HANDLE_LIST_HEAD
-		ds_list_destroy(_list);
-		return _ins;
-	__ZCOLLISION_HANDLE_LIST_TAIL noone;
+	__ZCOLLISION_HANDLE
 }
 
 function ZCollisionCubeList(x1, y1, z1, x2, y2, z2, obj, prec, notme, list, ordered) {
-	static resLen = 0;
-	
 	__ZCOLLISION_HANDLE_INIT collision_rectangle_list(x1, y1, x2, y2, obj, prec, notme, _list, ordered);
 	
-	resLen = 0;
-	__ZCOLLISION_HANDLE_LIST_HEAD
-		resLen++;
-		ds_list_add(list, _ins);
-	__ZCOLLISION_HANDLE_LIST_TAIL resLen;
+	__ZCOLLISION_HANDLE_LIST
 }
 
 function ZDrawCollisionLine(x1, y1, z1, x2, y2, z2) {
@@ -558,9 +565,43 @@ function ZCollisionLineList(_x1, _y1, _z1, _x2, _y2, _z2, obj, prec, notme, list
 	__ZCOLLISION_HANDLE_LIST_TAIL__ZCOLLISIONLINE resLen;
 }
 
+function ZInstancePlace(_x, _y, _z, obj) {
+	__ZCOLLISION_HANDLE_MAKE_Z1Z2
+	
+	__ZCOLLISION_HANDLE_INIT instance_place_list(_x, _y, obj, _list, false);
+	
+	__ZCOLLISION_HANDLE
+}
+
+function ZInstancePlaceList(_x, _y, _z, obj, list, ordered) {
+	__ZCOLLISION_HANDLE_MAKE_Z1Z2
+	
+	__ZCOLLISION_HANDLE_INIT instance_place_list(_x, _y, obj, _list, ordered);
+	
+	__ZCOLLISION_HANDLE_LIST
+}
+
+function ZInstancePosition(_x, _y, _z, obj) {
+	__ZCOLLISION_HANDLE_MAKE_Z1Z2
+	
+	__ZCOLLISION_HANDLE_INIT instance_position_list(_x, _y, obj, _list, false);
+	
+	__ZCOLLISION_HANDLE
+}
+
+function ZInstancePositionList(_x, _y, _z, obj, list, ordered) {
+	__ZCOLLISION_HANDLE_MAKE_Z1Z2
+	
+	__ZCOLLISION_HANDLE_INIT instance_position_list(_x, _y, obj, _list, ordered);
+	
+	__ZCOLLISION_HANDLE_LIST
+}
+
 /* Physics */
 
-
+function ZMovement(_xSpeed, _ySpeed, _zSpeed, _objWall) {
+	static i = 0;
+}
 
 /* Others */
 

@@ -37,3 +37,5 @@ ZDrawSetColor(9999, c_black);
 ZDrawInsertCommand(9999, draw_text, [mouse_x, mouse_y + 40, str]);
 ZDrawInsertCommand(9999, draw_text, [mouse_x, mouse_y + 20, $"ZCollisionCylinderList() returns {_len}"]);
 ZDrawSetColor(9999, c_white);
+
+show_debug_message(ZCollisionPoint(x, y, z, [obj_Floor, obj_FloorCircle], true, false));
