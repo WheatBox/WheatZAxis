@@ -6,7 +6,7 @@ if(mouse_wheel_down()) { z -= 5; }
 if(keyboard_check(ord("W"))) { height += 5; }
 if(keyboard_check(ord("S"))) { height -= 5; }
 
-ZDrawCollisionCylinder(x, y, z, z + height, 40);
+// ZDrawCollisionCylinder(x, y, z, z + height, 40);
 // ZDrawCollisionCube(x - 40, y - 40, z, x + 40, y + 40, z + height);
 
 var strInCollision = $"{z} ~ {z + height}";
@@ -18,9 +18,17 @@ ZDrawSetColor(zStrInCollision, c_white);
 ZDrawText(mouse_x, mouse_y, zStrInCollision, strInCollision);
 ZDrawSetAlpha(zStrInCollision, 1);
 
+var _len = 0;
 var _list = ds_list_create();
-var _len = ZCollisionCylinderList(x, y, z, z + height, 40, obj_Floor, false, true, _list, true);
-// var _len = ZCollisionCubeList(x - 40, y - 40, z, x + 40, y + 40, z + height, obj_Floor, false, true, _list, true);
+// _len = ZCollisionCylinderList(x, y, z, z + height, 40, obj_Floor, false, true, _list, true);
+// _len = ZCollisionCubeList(x - 40, y - 40, z, x + 40, y + 40, z + height, obj_Floor, false, true, _list, true);
+
+id[$ "TEST"] ??= degtorad(180);
+TEST += degtorad(2);
+var rad = 96;
+ZDrawCollisionLine(x, y, z, x + cos(TEST) * rad, y + sin(TEST) * rad, z + height);
+ZDrawCircleColorAlpha(x, y, z + height, rad, c_yellow, c_yellow, 0.5, true);
+_len = ZCollisionLineList(x, y, z, x + cos(TEST) * rad, y + sin(TEST) * rad, z + height, obj_Floor, true, true, _list, true);
 
 var str = ""; for(var i = 0; i < _len; i++) str += string(_list[| i]) + "\n";
 ds_list_destroy(_list);

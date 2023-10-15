@@ -488,6 +488,80 @@ function ZCollisionCubeList(x1, y1, z1, x2, y2, z2, obj, prec, notme, list, orde
 	__ZCOLLISION_HANDLE_LIST_TAIL resLen;
 }
 
+function ZDrawCollisionLine(x1, y1, z1, x2, y2, z2) {
+	static col1 = c_blue, col2 = c_red, alpha = 0.7;
+	
+	ZDrawLineColorAlpha(x1, y1, z1, x2, y2, z2, c_blue, c_red, alpha);
+}
+
+#macro __ZCOLLISION_HANDLE_INIT__ZCOLLISIONLINE \
+	static x1 = 0, y1 = 0, z1 = 0, x2 = 0, y2 = 0, z2 = 0;\
+	if(_z1 < _z2) { \
+		z1 = _z1; z2 = _z2; \
+		x1 = _x1; x2 = _x2; \
+		y1 = _y1; y2 = _y2; \
+	} else { \
+		z1 = _z2; z2 = _z1; \
+		x1 = _x2; x2 = _x1; \
+		y1 = _y2; y2 = _y1; \
+	} \
+	\
+	static _collitionZLow = 0, _collitionZHigh = 0; \
+	static _xRatio = 0, _yRatio = 0; \
+	static _xFrom = 0, _xTo = 0, _yFrom = 0, _yTo = 0; \
+	static _lineZHeight = 0; \
+	\
+	_lineZHeight = (z2 - z1); \
+	\
+	if(_lineZHeight == 0) { \
+		_xRatio = 0; \
+		_yRatio = 0; \
+	} else { \
+		_xRatio = (x2 - x1) / _lineZHeight; \
+		_yRatio = (y2 - y1) / _lineZHeight; \
+	} \
+	\
+	__ZCOLLISION_HANDLE_INIT collision_line_list(x1, y1, x2, y2, obj, prec, notme, _list, false)
+
+#macro __ZCOLLISION_HANDLE_LIST_HEAD__ZCOLLISIONLINE \
+	__ZCOLLISION_HANDLE_LIST_HEAD \
+	_collitionZLow = max(min(__n1, __n2), z1) - z1; \
+	_collitionZHigh = min(max(__n1, __n2), z2) - z1; \
+	\
+	_xFrom = x1 + _xRatio * _collitionZLow; \
+	_xTo = x1 + _xRatio * _collitionZHigh; \
+	_yFrom = y1 + _yRatio * _collitionZLow; \
+	_yTo = y1 + _yRatio * _collitionZHigh; \
+	\
+	if(collision_line(_xFrom, _yFrom, _xTo, _yTo, _ins, prec, notme)) {
+
+#macro __ZCOLLISION_HANDLE_LIST_TAIL__ZCOLLISIONLINE } __ZCOLLISION_HANDLE_LIST_TAIL
+
+function ZCollisionLine(_x1, _y1, _z1, _x2, _y2, _z2, obj, prec, notme) {
+	__ZCOLLISION_HANDLE_INIT__ZCOLLISIONLINE
+	
+	__ZCOLLISION_HANDLE_LIST_HEAD__ZCOLLISIONLINE
+		ds_list_destroy(_list);
+		return _ins;
+	__ZCOLLISION_HANDLE_LIST_TAIL__ZCOLLISIONLINE noone;
+}
+
+function ZCollisionLineList(_x1, _y1, _z1, _x2, _y2, _z2, obj, prec, notme, list, ordered) {
+	static resLen = 0;
+	
+	__ZCOLLISION_HANDLE_INIT__ZCOLLISIONLINE
+	
+	resLen = 0;
+	__ZCOLLISION_HANDLE_LIST_HEAD__ZCOLLISIONLINE
+		resLen++;
+		ds_list_add(list, _ins);
+	__ZCOLLISION_HANDLE_LIST_TAIL__ZCOLLISIONLINE resLen;
+}
+
+/* Physics */
+
+
+
 /* Others */
 
 function InRange(val, n1, n2) {

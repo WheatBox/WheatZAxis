@@ -21,5 +21,6 @@
     {"name":"spr_Floor","order":1,"path":"sprites/spr_Floor/spr_Floor.yy",},
     {"name":"obj_Mouse","order":2,"path":"objects/obj_Mouse/obj_Mouse.yy",},
     {"name":"obj_ZDraw","order":3,"path":"objects/obj_ZDraw/obj_ZDraw.yy",},
+    {"name":"obj_Movement","order":4,"path":"objects/obj_Movement/obj_Movement.yy",},
   ],
 }
