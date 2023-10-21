@@ -4,7 +4,7 @@ function ZtoY(_y, _z) {
 	return _y - ZtoY_RATIO * _z;
 }
 
-/// @desc Same with ZtoY()
+/// @desc Same as ZtoY()
 function YZ(_y, _z) {
 	return _y - ZtoY_RATIO * _z;
 }
@@ -599,8 +599,322 @@ function ZInstancePositionList(_x, _y, _z, obj, list, ordered) {
 
 /* Physics */
 
-function ZMovement(_xSpeed, _ySpeed, _zSpeed, _objWall) {
-	static i = 0;
+function __ZMovementCollideX(_x, _y, _z, _xStep, _xDir, _objWall) {
+	if(ZInstancePlace(_x + _xStep, _y, _z, _objWall) != noone) {
+		while(ZInstancePlace(_x + _xDir, _y, _z, _objWall) == noone) {
+			_x += _xDir;
+		}
+	} else {
+		_x += _xStep;
+	}
+	return _x;
+}
+
+function __ZMovementCollideY(_x, _y, _z, _yStep, _yDir, _objWall) {
+	if(ZInstancePlace(_x, _y + _yStep, _z, _objWall) != noone) {
+		while(ZInstancePlace(_x, _y + _yDir, _z, _objWall) == noone) {
+			_y += _yDir;
+		}
+	} else {
+		_y += _yStep;
+	}
+	return _y;
+}
+
+function __ZMovementCollideZ(_x, _y, _z, _zStep, _zDir, _objWall) {
+	if(ZInstancePlace(_x, _y, _z + _zStep, _objWall) != noone) {
+		while(ZInstancePlace(_x, _y, _z + _zDir, _objWall) == noone) {
+			_z += _zDir;
+		}
+	} else {
+		_z += _zStep;
+	}
+	return _z;
+}
+
+function ZMovementFast(_xDir, _yDir, _zDir, _moveSpeed, _objWall) {
+	// TODO
+}
+
+function ZMovement(_xDir, _yDir, _zDir, _moveSpeed, _objWall) {
+	if(_xDir == 0 && _yDir == 0 && _zDir == 0) {
+		return;
+	}
+	
+	static _steplen = 0;
+	_steplen = min(bbox_right - bbox_left, bbox_bottom - bbox_top, _moveSpeed);
+	_steplen = ((_steplen < 1) ? 1 : _steplen);
+	
+	static _xStep = 0, _yStep = 0, _zStep = 0;
+	_xStep = _xDir * _steplen;
+	_yStep = _yDir * _steplen;
+	_zStep = _zDir * _steplen;
+	
+	static _x = 0, _y = 0, _z = 0;
+	_x = x; _y = y; _z = z;
+	
+	static _movedDis = 0; // 已经移动过的距离 | Distance that already moved
+	_movedDis = 0;
+	
+	static _movedDisOver = 0; // 超出的移动距离 | Distance that exceed
+	
+	static _xCurrStep = 0, _yCurrStep = 0, _zCurrStep = 0;
+	
+	while(_movedDis < _moveSpeed) {
+		
+		if(_movedDis <= _moveSpeed) {
+			_xCurrStep = _xStep;
+			_yCurrStep = _yStep;
+			_zCurrStep = _zStep;
+		} else {
+			_movedDisOver = _movedDis - _moveSpeed;
+			_xCurrStep += _xStep - _xDir * _movedDisOver;
+			_yCurrStep += _yStep - _yDir * _movedDisOver;
+			_zCurrStep += _zStep - _zDir * _movedDisOver;
+		}
+		
+		_x = __ZMovementCollideX(_x, _y, _z, _xCurrStep, _xDir, _objWall);
+		_y = __ZMovementCollideY(_x, _y, _z, _yCurrStep, _yDir, _objWall);
+		_z = __ZMovementCollideZ(_x, _y, _z, _zCurrStep, _zDir, _objWall);
+		
+		if(_x != _x + _xCurrStep || _y != _y + _yCurrStep || _z != _z + _zCurrStep) {
+			break;
+		}
+		
+		_movedDis += _steplen;
+		
+	}
+	
+	x = _x;
+	y = _y;
+	z = _z;
+}
+
+function ZMovementPlus_PixelVer(_xDir, _yDir, _zDir, _moveSpeed, _objWall, _zBias) {
+	if(_xDir == 0 && _yDir == 0 && _zDir == 0) {
+		return;
+	}
+	
+	static _steplen = 0;
+	_steplen = min(bbox_right - bbox_left, bbox_bottom - bbox_top, _moveSpeed);
+	_steplen = ((_steplen < 1) ? 1 : _steplen);
+	
+	static _xStep = 0, _yStep = 0, _zStep = 0;
+	_xStep = _xDir * _steplen;
+	_yStep = _yDir * _steplen;
+	_zStep = _zDir * _steplen;
+	
+	static _x = 0, _y = 0, _z = 0;
+	_x = x; _y = y; _z = z;
+	
+	static _movedDis = 0; // 已经移动过的距离 | Distance that already moved
+	_movedDis = 0;
+	
+	static _movedDisOver = 0; // 超出的移动距离 | Distance that exceed
+	
+	static _xCurrStep = 0, _yCurrStep = 0, _zCurrStep = 0;
+	
+	static _xPrev = 0, _yPrev = 0, _zPrev = 0;
+	_xPrev = _x;
+	_yPrev = _y;
+	_zPrev = _z;
+	
+	while(_movedDis < _moveSpeed) {
+		
+		if(_movedDis <= _moveSpeed) {
+			_xCurrStep = _xStep;
+			_yCurrStep = _yStep;
+			_zCurrStep = _zStep;
+		} else {
+			_movedDisOver = _movedDis - _moveSpeed;
+			_xCurrStep += _xStep - _xDir * _movedDisOver;
+			_yCurrStep += _yStep - _yDir * _movedDisOver;
+			_zCurrStep += _zStep - _zDir * _movedDisOver;
+		}
+		
+		_x = __ZMovementCollideX(_x, _y, _z, _xCurrStep, _xDir, _objWall);
+		_y = __ZMovementCollideY(_x, _y, _z, _yCurrStep, _yDir, _objWall);
+		_z = __ZMovementCollideZ(_x, _y, _z, _zCurrStep, _zDir, _objWall);
+		
+		_movedDis += point_distance_3d(_x, _y, _z, _xPrev, _yPrev, _zPrev);
+		
+		_xPrev = _x;
+		_yPrev = _y;
+		_zPrev = _z;
+		
+		if(_x != _x + _xCurrStep || _y != _y + _yCurrStep || _z != _z + _zCurrStep) {
+			break;
+		}
+		
+	}
+	
+	static _i = 0, _iDis = 0, _iDisCmp = 0, _iDisCmpSign = 0;
+	static _remainDis = 0, _remainDisTemp = 0, _xDirSign = 0, _yDirSign = 0;
+	
+	static _iDisDestArr = [];
+	static _Calculate_iDis = function(_destArr, _remainDis, _moveSpeed, _x, _y, _z, _xDirSign, _yDirSign, _objWall) {
+		static _iDis = 0, _i = 0;
+		
+		_destArr[0] = _moveSpeed + 1; // _iDisCmp
+		_destArr[1] = 0; // _iDisCmpSign
+		
+		for(_i = -1; _i <= 1; _i += 2) {
+			
+			for(_iDis = _remainDis; _iDis >= 0; _iDis--) {
+				if(_xDirSign != 0) {
+					if(ZInstancePlace(_x + _xDirSign * (_remainDis - _iDis), _y + _i * _iDis, _z, _objWall) != noone) {
+						_iDis++;
+						break;
+					}
+				} else {
+					if(ZInstancePlace(_x + _i * _iDis, _y + _yDirSign * (_remainDis - _iDis), _z, _objWall) != noone) {
+						_iDis++;
+						break;
+					}
+				}
+			}
+			if(_iDis < 0 || _iDis == _remainDis + 1) {
+				_iDis = 0;
+			}
+			
+			if(_iDis < _destArr[0] && _iDis != 0) {
+				_destArr[0] = _iDis;
+				_destArr[1] = _i;
+			}
+			
+		}
+	}
+	
+	/* 嗯……是的，宏。 | emmm... yes, macro. */
+	#macro __ZMovementPlus_PixelVer_MovementX if(_iDisCmpSign != 0) { \
+		_xPrev = _x; \
+		_x = __ZMovementCollideX(_x, _y + _iDisCmpSign * _iDisCmp, _z, _xDirSign * (_remainDis - _iDisCmp), _xDir, _objWall); \
+		if(_x != _xPrev) { \
+			_y += _iDisCmpSign * _iDisCmp; \
+		} \
+		_remainDis -= _iDisCmp; \
+		if(_remainDis < 0) { \
+			_remainDis = 0; \
+		} \	
+		_remainDisTemp = _remainDis; \
+	}
+	#macro __ZMovementPlus_PixelVer_MovementY if(_iDisCmpSign != 0) { \
+		_yPrev = _y; \
+		_y = __ZMovementCollideY(_x + _iDisCmpSign * _iDisCmp, _y, _z, _yDirSign * (_remainDis - _iDisCmp), _yDir, _objWall); \
+		if(_y != _yPrev) { \
+			_x += _iDisCmpSign * _iDisCmp; \
+		} \
+		_remainDis -= _iDisCmp; \
+		if(_remainDis < 0) { \
+			_remainDis = 0; \
+		} \	
+		_remainDisTemp = _remainDis; \
+	}
+	
+	static _xFirst = false;
+	
+	if(_movedDis < _moveSpeed) {
+		_xDirSign = sign(_xDir);
+		_yDirSign = sign(_yDir);
+		
+		_remainDisTemp = _moveSpeed - _movedDis;
+		
+		if(_xDirSign != 0 && _yDirSign == 0) {
+			
+			_remainDis = _remainDisTemp;
+			
+			_Calculate_iDis(_iDisDestArr, _remainDis, _moveSpeed, _x, _y, _z, _xDirSign, 0, _objWall);
+			
+			_iDisCmp = _iDisDestArr[0];
+			_iDisCmpSign = _iDisDestArr[1];
+			
+			__ZMovementPlus_PixelVer_MovementX
+		
+		}
+		else
+		if(_xDirSign == 0 && _yDirSign != 0) {
+			
+			_remainDis = _remainDisTemp;
+			
+			_Calculate_iDis(_iDisDestArr, _remainDis, _moveSpeed, _x, _y, _z, 0, _yDirSign, _objWall);
+			
+			_iDisCmp = _iDisDestArr[0];
+			_iDisCmpSign = _iDisDestArr[1];
+			
+			__ZMovementPlus_PixelVer_MovementY
+			
+		}
+		else
+		if(_xDirSign != 0 && _yDirSign != 0) {
+			
+			_xDirSign = _xDir;
+			_yDirSign = _yDir;
+			
+			// 确定应当 x 优先，还是 y 优先 | Determine whether x should be prioritized or y should be prioritized
+			
+			_remainDis = _remainDisTemp;
+			_Calculate_iDis(_iDisDestArr, _remainDis, _moveSpeed, _x, _y, _z, _xDirSign, 0, _objWall);
+			
+			_iDisCmp = _iDisDestArr[0];
+			_iDisCmpSign = _iDisDestArr[1];
+			
+			_remainDis = _remainDisTemp;
+			_Calculate_iDis(_iDisDestArr, _remainDis, _moveSpeed, _x, _y, _z, 0, _yDirSign, _objWall);
+			
+			if(_iDisDestArr[0] < _iDisCmp) {
+				
+				_xFirst = false;
+				
+				_iDisCmp = _iDisDestArr[0];
+				_iDisCmpSign = _iDisDestArr[1];
+			} else {
+				
+				_xFirst = true;
+				
+			}
+			
+			if(_xFirst) {
+				
+				__ZMovementPlus_PixelVer_MovementX
+				
+				_remainDis = _remainDisTemp;
+			
+				_Calculate_iDis(_iDisDestArr, _remainDis, _moveSpeed, _x, _y, _z, 0, _yDirSign, _objWall);
+			
+				_iDisCmp = _iDisDestArr[0];
+				_iDisCmpSign = _iDisDestArr[1];
+			
+				__ZMovementPlus_PixelVer_MovementY
+				
+			} else {
+				
+				__ZMovementPlus_PixelVer_MovementY
+				
+				_remainDis = _remainDisTemp;
+			
+				_Calculate_iDis(_iDisDestArr, _remainDis, _moveSpeed, _x, _y, _z, _xDirSign, 0, _objWall);
+			
+				_iDisCmp = _iDisDestArr[0];
+				_iDisCmpSign = _iDisDestArr[1];
+			
+				__ZMovementPlus_PixelVer_MovementX
+				
+			}
+			
+		}
+	}
+	
+	// TODO - _zBias
+	
+	x = _x;
+	y = _y;
+	z = _z;
+	
+	//show_debug_message(point_distance(x, y, xprevious, yprevious));
+}
+
+function ZMovementPlus_ShapeVer() {
+	// TODO
 }
 
 /* Others */
