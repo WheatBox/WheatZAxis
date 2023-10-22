@@ -18,6 +18,7 @@ if(abs(haxis) > 0.4 || abs(vaxis) > 0.4) {
 var n = sqrt(xMove * xMove + yMove * yMove);
 
 if(n != 0) {
+	//ZMovementFast(xMove / n, yMove / n, 0, moveSpeed, [obj_Floor, obj_FloorCircle]);
 	//ZMovement(xMove / n, yMove / n, 0, moveSpeed, [obj_Floor, obj_FloorCircle]);
 	ZMovementPlus_PixelVer(xMove / n, yMove / n, 0, moveSpeed, [obj_Floor, obj_FloorCircle], 0);
 }

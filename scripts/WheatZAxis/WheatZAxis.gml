@@ -633,11 +633,23 @@ function __ZMovementCollideZ(_x, _y, _z, _zStep, _zDir, _objWall) {
 }
 
 function ZMovementFast(_xDir, _yDir, _zDir, _moveSpeed, _objWall) {
-	// TODO
+	if(_xDir == 0 && _yDir == 0 && _zDir == 0) {
+		return;
+	}
+	if(_moveSpeed == 0) {
+		return;
+	}
+	
+	x = __ZMovementCollideX(x, y, z, _xDir * _moveSpeed, _xDir, _objWall);
+	y = __ZMovementCollideY(x, y, z, _yDir * _moveSpeed, _yDir, _objWall);
+	z = __ZMovementCollideZ(x, y, z, _zDir * _moveSpeed, _zDir, _objWall);
 }
 
 function ZMovement(_xDir, _yDir, _zDir, _moveSpeed, _objWall) {
 	if(_xDir == 0 && _yDir == 0 && _zDir == 0) {
+		return;
+	}
+	if(_moveSpeed == 0) {
 		return;
 	}
 	
@@ -692,6 +704,9 @@ function ZMovement(_xDir, _yDir, _zDir, _moveSpeed, _objWall) {
 
 function ZMovementPlus_PixelVer(_xDir, _yDir, _zDir, _moveSpeed, _objWall, _zBias) {
 	if(_xDir == 0 && _yDir == 0 && _zDir == 0) {
+		return;
+	}
+	if(_moveSpeed == 0) {
 		return;
 	}
 	
