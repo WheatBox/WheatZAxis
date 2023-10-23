@@ -19,8 +19,10 @@ var n = sqrt(xMove * xMove + yMove * yMove);
 
 if(n != 0) {
 	//ZMovementFast(xMove / n, yMove / n, 0, moveSpeed, [obj_Floor, obj_FloorCircle]);
+	ZMovementFast_Stairs(xMove / n, yMove / n, 0, moveSpeed, [obj_Floor, obj_FloorCircle], 60);
 	//ZMovement(xMove / n, yMove / n, 0, moveSpeed, [obj_Floor, obj_FloorCircle]);
-	ZMovementPlus_PixelVer(xMove / n, yMove / n, 0, moveSpeed, [obj_Floor, obj_FloorCircle], 0);
+	//ZMovement_Stairs(xMove / n, yMove / n, 0, moveSpeed, [obj_Floor, obj_FloorCircle], 60);
+	//ZMovementPlus_PixelVer(xMove / n, yMove / n, 0, moveSpeed, [obj_Floor, obj_FloorCircle], 60);
 }
 
 // show_debug_message([n, x - xprevious, y - yprevious]);

@@ -599,6 +599,10 @@ function ZInstancePositionList(_x, _y, _z, obj, list, ordered) {
 
 /* Physics */
 
+function ZOnFloor(_objWall) {
+	return (ZInstancePlace(x, y, z - 1, _objWall) != noone);
+}
+
 function __ZMovementCollideX(_x, _y, _z, _xStep, _xDir, _objWall) {
 	if(ZInstancePlace(_x + _xStep, _y, _z, _objWall) != noone) {
 		while(ZInstancePlace(_x + _xDir, _y, _z, _objWall) == noone) {
@@ -632,6 +636,98 @@ function __ZMovementCollideZ(_x, _y, _z, _zStep, _zDir, _objWall) {
 	return _z;
 }
 
+/// @desc
+/// 参数 _arrDest：这是一个用于输入和输出的数组
+///
+/// _[0] = z（输入） | 变化后的 z（输出）
+///
+/// _[1] = 楼梯的最高高度（输入） | 没用完的楼梯高度（输出）
+///
+/// _
+///
+/// Argument _arrDest: This is a array for input and output
+///
+/// _[0] = z (input) | z after (output)
+///
+/// _[1] = Stairs' max height (input) | Stairs' unused height (output)
+function __ZMovementCollideX_Stairs(_x, _y, _arrDest, _xStep, _xDir, _objWall) {
+	static _zTemp = 0, _stairHeight = 0, _isStair = false;
+	
+	_zTemp = _arrDest[0];
+	_stairHeight = _arrDest[1];
+	
+	if(ZInstancePlace(_x + _xStep, _y, _zTemp, _objWall) != noone) {
+		
+		_isStair = true;
+		do {
+			_zTemp++;
+			if(_zTemp > _stairHeight) {
+				_isStair = false;
+				break;
+			}
+		} _do_while_(ZInstancePlace(_x + _xStep, _y, _zTemp, _objWall) != noone);
+		
+		if(_isStair) {
+			_arrDest[1] = _zTemp - _arrDest[0];
+			_arrDest[0] = _zTemp;
+			
+			// [0] = 新的 Z 坐标 | New Z coordinate
+			// [1] = 没用完的楼梯高度 | Stairs' unused height
+			
+			return _x + _xStep;
+		}
+		_zTemp = _arrDest[0];
+		
+		while(ZInstancePlace(_x + _xDir, _y, _zTemp, _objWall) == noone) {
+			_x += _xDir;
+		}
+	} else {
+		_x += _xStep;
+	}
+	return _x;
+}
+
+/// @desc
+/// 见 __ZMovementCollideX_Stairs()
+///
+/// See __ZMovementCollideX_Stairs()
+function __ZMovementCollideY_Stairs(_x, _y, _arrDest, _yStep, _yDir, _objWall) {
+	static _zTemp = 0, _stairHeight = 0, _isStair = false;
+	
+	_zTemp = _arrDest[0];
+	_stairHeight = _arrDest[1];
+	
+	if(ZInstancePlace(_x, _y + _yStep, _zTemp, _objWall) != noone) {
+		
+		_isStair = true;
+		do {
+			_zTemp++;
+			if(_zTemp > _stairHeight) {
+				_isStair = false;
+				break;
+			}
+		} _do_while_(ZInstancePlace(_x, _y + _yStep, _zTemp, _objWall) != noone);
+		
+		if(_isStair) {
+			_arrDest[1] = _zTemp - _arrDest[0];
+			_arrDest[0] = _zTemp;
+			
+			// [0] = 新的 Z 坐标 | New Z coordinate
+			// [1] = 没用完的楼梯高度 | Stairs' unused height
+			
+			return _y + _yStep;
+		}
+		_zTemp = _arrDest[0];
+		
+		while(ZInstancePlace(_x, _y + _yDir, _zTemp, _objWall) == noone) {
+			_y += _yDir;
+		}
+	} else {
+		_y += _yStep;
+	}
+	return _y;
+}
+
 function ZMovementFast(_xDir, _yDir, _zDir, _moveSpeed, _objWall) {
 	if(_xDir == 0 && _yDir == 0 && _zDir == 0) {
 		return;
@@ -645,7 +741,7 @@ function ZMovementFast(_xDir, _yDir, _zDir, _moveSpeed, _objWall) {
 	z = __ZMovementCollideZ(x, y, z, _zDir * _moveSpeed, _zDir, _objWall);
 }
 
-function ZMovement(_xDir, _yDir, _zDir, _moveSpeed, _objWall) {
+function ZMovementFast_Stairs(_xDir, _yDir, _zDir, _moveSpeed, _objWall, _stairsMaxHeight) {
 	if(_xDir == 0 && _yDir == 0 && _zDir == 0) {
 		return;
 	}
@@ -653,103 +749,115 @@ function ZMovement(_xDir, _yDir, _zDir, _moveSpeed, _objWall) {
 		return;
 	}
 	
-	static _steplen = 0;
-	_steplen = min(bbox_right - bbox_left, bbox_bottom - bbox_top, _moveSpeed);
-	_steplen = ((_steplen < 1) ? 1 : _steplen);
+	static _arrDest_z = [ 0, 0 ];
+	_arrDest_z[0] = z;
+	_arrDest_z[1] = _stairsMaxHeight;
 	
-	static _xStep = 0, _yStep = 0, _zStep = 0;
-	_xStep = _xDir * _steplen;
-	_yStep = _yDir * _steplen;
-	_zStep = _zDir * _steplen;
-	
-	static _x = 0, _y = 0, _z = 0;
-	_x = x; _y = y; _z = z;
-	
-	static _movedDis = 0; // 已经移动过的距离 | Distance that already moved
-	_movedDis = 0;
-	
-	static _movedDisOver = 0; // 超出的移动距离 | Distance that exceed
-	
-	static _xCurrStep = 0, _yCurrStep = 0, _zCurrStep = 0;
-	
-	while(_movedDis < _moveSpeed) {
-		
-		if(_movedDis <= _moveSpeed) {
-			_xCurrStep = _xStep;
-			_yCurrStep = _yStep;
-			_zCurrStep = _zStep;
-		} else {
-			_movedDisOver = _movedDis - _moveSpeed;
-			_xCurrStep += _xStep - _xDir * _movedDisOver;
-			_yCurrStep += _yStep - _yDir * _movedDisOver;
-			_zCurrStep += _zStep - _zDir * _movedDisOver;
+	x = __ZMovementCollideX_Stairs(x, y, _arrDest_z, _xDir * _moveSpeed, _xDir, _objWall);
+	y = __ZMovementCollideY_Stairs(x, y, _arrDest_z, _yDir * _moveSpeed, _yDir, _objWall);
+	z = __ZMovementCollideZ(x, y, _arrDest_z[0], _zDir * _moveSpeed, _zDir, _objWall);
+}
+
+#macro __ZMovement_BASIC_HEAD \
+	if(_xDir == 0 && _yDir == 0 && _zDir == 0) { \
+		return; \
+	} \
+	if(_moveSpeed == 0) { \
+		return; \
+	} \
+	\
+	static _steplen = 0; \
+	_steplen = min(bbox_right - bbox_left, bbox_bottom - bbox_top, _moveSpeed); \
+	_steplen = ((_steplen < 1) ? 1 : _steplen); \
+	\
+	static _xStep = 0, _yStep = 0, _zStep = 0; \
+	_xStep = _xDir * _steplen; \
+	_yStep = _yDir * _steplen; \
+	_zStep = _zDir * _steplen; \
+	\
+	static _x = 0, _y = 0, _z = 0; \
+	_x = x; _y = y; _z = z; \
+	\
+	static _movedDis = 0; /* 已经移动过的距离 | Distance that already moved */ \
+	_movedDis = 0; \
+	\
+	static _movedDisOver = 0; /* 超出的移动距离 | Distance that exceed */ \
+	\
+	static _xCurrStep = 0, _yCurrStep = 0, _zCurrStep = 0; \
+	\
+	while(_movedDis < _moveSpeed) { \
+		\
+		if(_movedDis <= _moveSpeed) { \
+			_xCurrStep = _xStep; \
+			_yCurrStep = _yStep; \
+			_zCurrStep = _zStep; \
+		} else { \
+			_movedDisOver = _movedDis - _moveSpeed; \
+			_xCurrStep += _xStep - _xDir * _movedDisOver; \
+			_yCurrStep += _yStep - _yDir * _movedDisOver; \
+			_zCurrStep += _zStep - _zDir * _movedDisOver; \
 		}
+
+#macro __ZMovement_BASIC_TAIL \
+		if(_x != _x + _xCurrStep || _y != _y + _yCurrStep || _z != _z + _zCurrStep) { \
+			break; \
+		} \
+	}
+
+function ZMovement(_xDir, _yDir, _zDir, _moveSpeed, _objWall) {
+	__ZMovement_BASIC_HEAD
 		
 		_x = __ZMovementCollideX(_x, _y, _z, _xCurrStep, _xDir, _objWall);
 		_y = __ZMovementCollideY(_x, _y, _z, _yCurrStep, _yDir, _objWall);
 		_z = __ZMovementCollideZ(_x, _y, _z, _zCurrStep, _zDir, _objWall);
 		
-		if(_x != _x + _xCurrStep || _y != _y + _yCurrStep || _z != _z + _zCurrStep) {
-			break;
-		}
-		
 		_movedDis += _steplen;
 		
-	}
+	__ZMovement_BASIC_TAIL
 	
 	x = _x;
 	y = _y;
 	z = _z;
 }
 
-function ZMovementPlus_PixelVer(_xDir, _yDir, _zDir, _moveSpeed, _objWall, _zBias) {
-	if(_xDir == 0 && _yDir == 0 && _zDir == 0) {
-		return;
-	}
-	if(_moveSpeed == 0) {
-		return;
-	}
+function ZMovement_Stairs(_xDir, _yDir, _zDir, _moveSpeed, _objWall, _stairsMaxHeight) {
+	static _arrDest_z = [ 0, 0 ];
 	
-	static _steplen = 0;
-	_steplen = min(bbox_right - bbox_left, bbox_bottom - bbox_top, _moveSpeed);
-	_steplen = ((_steplen < 1) ? 1 : _steplen);
+	__ZMovement_BASIC_HEAD
 	
-	static _xStep = 0, _yStep = 0, _zStep = 0;
-	_xStep = _xDir * _steplen;
-	_yStep = _yDir * _steplen;
-	_zStep = _zDir * _steplen;
+		_arrDest_z[0] = z;
+		_arrDest_z[1] = _stairsMaxHeight;
+		
+		_x = __ZMovementCollideX_Stairs(_x, _y, _arrDest_z, _xCurrStep, _xDir, _objWall);
+		_y = __ZMovementCollideY_Stairs(_x, _y, _arrDest_z, _yCurrStep, _yDir, _objWall);
+		_z = __ZMovementCollideZ(_x, _y, _arrDest_z[0], _zCurrStep, _zDir, _objWall);
+		
+		_movedDis += _steplen;
+		
+	__ZMovement_BASIC_TAIL
 	
-	static _x = 0, _y = 0, _z = 0;
-	_x = x; _y = y; _z = z;
-	
-	static _movedDis = 0; // 已经移动过的距离 | Distance that already moved
-	_movedDis = 0;
-	
-	static _movedDisOver = 0; // 超出的移动距离 | Distance that exceed
-	
-	static _xCurrStep = 0, _yCurrStep = 0, _zCurrStep = 0;
+	x = _x;
+	y = _y;
+	z = _z;
+}
+
+function ZMovementPlus_PixelVer(_xDir, _yDir, _zDir, _moveSpeed, _objWall, _stairsMaxHeight) {
 	
 	static _xPrev = 0, _yPrev = 0, _zPrev = 0;
-	_xPrev = _x;
-	_yPrev = _y;
-	_zPrev = _z;
+	_xPrev = x;
+	_yPrev = y;
+	_zPrev = z;
 	
-	while(_movedDis < _moveSpeed) {
+	static _arrDest_z = [ 0, 0 ];
+	
+	__ZMovement_BASIC_HEAD
 		
-		if(_movedDis <= _moveSpeed) {
-			_xCurrStep = _xStep;
-			_yCurrStep = _yStep;
-			_zCurrStep = _zStep;
-		} else {
-			_movedDisOver = _movedDis - _moveSpeed;
-			_xCurrStep += _xStep - _xDir * _movedDisOver;
-			_yCurrStep += _yStep - _yDir * _movedDisOver;
-			_zCurrStep += _zStep - _zDir * _movedDisOver;
-		}
+		_arrDest_z[0] = z;
+		_arrDest_z[1] = _stairsMaxHeight;
 		
-		_x = __ZMovementCollideX(_x, _y, _z, _xCurrStep, _xDir, _objWall);
-		_y = __ZMovementCollideY(_x, _y, _z, _yCurrStep, _yDir, _objWall);
-		_z = __ZMovementCollideZ(_x, _y, _z, _zCurrStep, _zDir, _objWall);
+		_x = __ZMovementCollideX_Stairs(_x, _y, _arrDest_z, _xCurrStep, _xDir, _objWall);
+		_y = __ZMovementCollideY_Stairs(_x, _y, _arrDest_z, _yCurrStep, _yDir, _objWall);
+		_z = __ZMovementCollideZ(_x, _y, _arrDest_z[0], _zCurrStep, _zDir, _objWall);
 		
 		_movedDis += point_distance_3d(_x, _y, _z, _xPrev, _yPrev, _zPrev);
 		
@@ -757,32 +865,30 @@ function ZMovementPlus_PixelVer(_xDir, _yDir, _zDir, _moveSpeed, _objWall, _zBia
 		_yPrev = _y;
 		_zPrev = _z;
 		
-		if(_x != _x + _xCurrStep || _y != _y + _yCurrStep || _z != _z + _zCurrStep) {
-			break;
-		}
-		
-	}
+	__ZMovement_BASIC_TAIL
 	
-	static _i = 0, _iDis = 0, _iDisCmp = 0, _iDisCmpSign = 0;
+	/* 关于 XY 轴的靠墙移动 | About moving against the wall of XY Axis */
+	
+	static _iDisSign = 0, _iDis = 0, _iDisCmp = 0, _iDisCmpSign = 0;
 	static _remainDis = 0, _remainDisTemp = 0, _xDirSign = 0, _yDirSign = 0;
 	
 	static _iDisDestArr = [];
 	static _Calculate_iDis = function(_destArr, _remainDis, _moveSpeed, _x, _y, _z, _xDirSign, _yDirSign, _objWall) {
-		static _iDis = 0, _i = 0;
+		static _iDis = 0, _iDisSign = 0;
 		
 		_destArr[0] = _moveSpeed + 1; // _iDisCmp
 		_destArr[1] = 0; // _iDisCmpSign
 		
-		for(_i = -1; _i <= 1; _i += 2) {
+		for(_iDisSign = -1; _iDisSign <= 1; _iDisSign += 2) {
 			
 			for(_iDis = _remainDis; _iDis >= 0; _iDis--) {
 				if(_xDirSign != 0) {
-					if(ZInstancePlace(_x + _xDirSign * (_remainDis - _iDis), _y + _i * _iDis, _z, _objWall) != noone) {
+					if(ZInstancePlace(_x + _xDirSign * (_remainDis - _iDis), _y + _iDisSign * _iDis, _z, _objWall) != noone) {
 						_iDis++;
 						break;
 					}
 				} else {
-					if(ZInstancePlace(_x + _i * _iDis, _y + _yDirSign * (_remainDis - _iDis), _z, _objWall) != noone) {
+					if(ZInstancePlace(_x + _iDisSign * _iDis, _y + _yDirSign * (_remainDis - _iDis), _z, _objWall) != noone) {
 						_iDis++;
 						break;
 					}
@@ -794,7 +900,7 @@ function ZMovementPlus_PixelVer(_xDir, _yDir, _zDir, _moveSpeed, _objWall, _zBia
 			
 			if(_iDis < _destArr[0] && _iDis != 0) {
 				_destArr[0] = _iDis;
-				_destArr[1] = _i;
+				_destArr[1] = _iDisSign;
 			}
 			
 		}
@@ -919,8 +1025,6 @@ function ZMovementPlus_PixelVer(_xDir, _yDir, _zDir, _moveSpeed, _objWall, _zBia
 		}
 	}
 	
-	// TODO - _zBias
-	
 	x = _x;
 	y = _y;
 	z = _z;
@@ -944,3 +1048,5 @@ function InRange(val, n1, n2) {
 function RangeInRange(n1, n2, m1, m2) {
 	return abs((n1 + n2) / 2 - (m1 + m2) / 2) <= abs((n1 - n2) / 2) + abs((m1 - m2) / 2);
 }
+
+#macro _do_while_ until !
