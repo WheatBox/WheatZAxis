@@ -791,12 +791,12 @@ function ZMovementFast_Stairs(_xDir, _yDir, _zDir, _moveSpeed, _objWall, _stairs
 			_xCurrStep = _xStep; \
 			_yCurrStep = _yStep; \
 			_zCurrStep = _zStep; \
-		} else { \
+		}/* else { \
 			_movedDisOver = _movedDis - _moveSpeed; \
 			_xCurrStep += _xStep - _xDir * _movedDisOver; \
 			_yCurrStep += _yStep - _yDir * _movedDisOver; \
 			_zCurrStep += _zStep - _zDir * _movedDisOver; \
-		}
+		}*/
 
 #macro __ZMovement_BASIC_TAIL \
 		if(_x != _x + _xCurrStep || _y != _y + _yCurrStep || _z != _z + _zCurrStep) { \
@@ -1032,8 +1032,140 @@ function ZMovementPlus_PixelVer(_xDir, _yDir, _zDir, _moveSpeed, _objWall, _stai
 	//show_debug_message(point_distance(x, y, xprevious, yprevious));
 }
 
-function ZMovementPlus_ShapeVer() {
-	// TODO
+function ZMovementPlus_ShapeVer(_xDir, _yDir, _zDir, _moveSpeed, _objWall, _stairsMaxHeight) {
+	
+	static _listWalls = ds_list_create(), _listWallsLen = 0, _insWallTemp = noone, i = 0;
+	
+	static _xTemp = 0, _yTemp = 0;
+	
+	static _remainStep = 0, _finalStep = 0, _finalStepSign = 0, _finalXDir = 0, _finalYDir = 0, _finalDir = 0;
+	
+	static _toWallDis = 0, _toWallDir = 0;
+	
+	__ZMovement_BASIC_HEAD
+	
+		ds_list_clear(_listWalls);
+		_listWallsLen = ZInstancePlaceList(_x + _xCurrStep, _y + _yCurrStep, _z, _objWall, _listWalls, true);
+		
+		if(_listWallsLen > 0) {
+			
+			_remainStep = _steplen;
+			
+			for(i = 0; i < _listWallsLen; i++) {
+			
+				_insWallTemp = _listWalls[| i];
+				
+				_xCurrStep = _xDir * _remainStep;
+				_yCurrStep = _yDir * _remainStep;
+			
+				// TODO - 圆
+				if(ZInstancePlace(_x + _xCurrStep, _y + _yCurrStep, _z, _insWallTemp) != noone) {
+				
+					while(ZInstancePlace(_x + _xDir, _y + _yDir, _z, _objWall) == noone) {
+						_x += _xDir;
+						_y += _yDir;
+					
+						_remainStep -= 1;
+						if(_remainStep <= 0) {
+							_remainStep = 0;
+							break;
+						}
+					}
+				
+					if(_remainStep == 0) {
+						continue;
+					}
+				
+					_finalDir = _insWallTemp.image_angle;
+					
+					/* 检测在墙体的上下面还是左右面 | Check whether on the top/bottom or left/right of the wall */
+					
+					_xTemp = lengthdir_x(_toWallDis, _toWallDir);
+					_yTemp = lengthdir_y(_toWallDis, _toWallDir);
+					
+					_insWallTemp.image_angle = 0;
+					
+					if(RangeInRange(
+						_insWallTemp.x + lengthdir_x(point_distance(_insWallTemp.x, _insWallTemp.y, bbox_left, y), point_direction(_insWallTemp.x, _insWallTemp.y, bbox_left, y) - _finalDir),
+						_insWallTemp.x + lengthdir_x(point_distance(_insWallTemp.x, _insWallTemp.y, bbox_right, y), point_direction(_insWallTemp.x, _insWallTemp.y, bbox_right, y) - _finalDir),
+						_insWallTemp.bbox_left, _insWallTemp.bbox_right
+						)) {
+						// 上下面 | top/bottom
+						
+						_insWallTemp.image_angle = _finalDir;
+						
+					} else {
+						// 左右面 | left/right
+						
+						_insWallTemp.image_angle = _finalDir;
+						
+						_finalDir += 90;
+					}
+					
+					/* -------------------------------------- */
+					
+					_finalStep = lengthdir_x(_remainStep, point_direction(0, 0, _xDir, _yDir) - _finalDir);
+					_finalStepSign = sign(_finalStep);
+					
+					if(_finalStepSign == 0) {
+						break;
+					}
+				
+					_xTemp = _x + lengthdir_x(_finalStep, _finalDir);
+					_yTemp = _y + lengthdir_y(_finalStep, _finalDir);
+				
+					_finalStep *= _finalStepSign; // abs()
+				
+					if(ZInstancePlace(_xTemp, _yTemp, _z, _objWall) == noone) {
+						_x = _xTemp;
+						_y = _yTemp;
+					
+						_remainStep = 0;
+					} else {
+					
+						_finalXDir = lengthdir_x(_finalStepSign, _finalDir);
+						_finalYDir = lengthdir_y(_finalStepSign, _finalDir);
+					
+						while(ZInstancePlace(_x + _finalXDir, _y + _finalYDir, _z, _objWall) == noone) {
+							_x += _finalXDir;
+							_y += _finalYDir;
+						
+							_finalStep -= 1;
+							if(_finalStep <= 0) {
+								_finalStep = 0;
+								break;
+							}
+						}
+					
+						_remainStep = _finalStep;
+						
+					}
+				
+				} else {
+					_x = __ZMovementCollideX(_x, _y, _z, _xCurrStep, _xDir, _objWall);
+					_y = __ZMovementCollideY(_x, _y, _z, _yCurrStep, _yDir, _objWall);
+					
+					_remainStep = 0;
+				}
+			
+			}
+			
+		} else {
+			_x = __ZMovementCollideX(_x, _y, _z, _xCurrStep, _xDir, _objWall);
+			_y = __ZMovementCollideY(_x, _y, _z, _yCurrStep, _yDir, _objWall);
+		}
+		
+		_z = __ZMovementCollideZ(_x, _y, _z, _zCurrStep, _zDir, _objWall);
+		
+		_movedDis += _steplen;
+		
+	__ZMovement_BASIC_TAIL
+	
+	x = _x;
+	y = _y;
+	z = _z;
+	
+	// show_debug_message(point_distance(x, y, xprevious, yprevious));
 }
 
 /* Others */
