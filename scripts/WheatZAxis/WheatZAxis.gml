@@ -1042,6 +1042,11 @@ function ZMovementPlus_ShapeVer(_xDir, _yDir, _zDir, _moveSpeed, _objWall, _stai
 	
 	static _toWallDis = 0, _toWallDir = 0;
 	
+	static _toWallDisLT = 0, _toWallDisLB = 0, _toWallDisRT = 0, _toWallDisRB = 0;
+	static _toWallDirLT = 0, _toWallDirLB = 0, _toWallDirRT = 0, _toWallDirRB = 0;
+	
+	static _side = 0;
+	
 	__ZMovement_BASIC_HEAD
 	
 		ds_list_clear(_listWalls);
@@ -1075,31 +1080,89 @@ function ZMovementPlus_ShapeVer(_xDir, _yDir, _zDir, _moveSpeed, _objWall, _stai
 					if(_remainStep == 0) {
 						continue;
 					}
-				
+					
+					/* 检测在墙体的上下面还是左右面 | Check whether on the Top & Bottom or Left & Right of the wall */
+					
+					/* 或者说，是所接触墙面的法向向量的方向
+					 * （相对于墙体的本地方向建立的坐标系来说）
+					 * |
+					 * Or rather, it is the direction of the normal vector of the wall surface in contact with it
+					 * (Compared to the coordinate system established in the local direction of the wall)
+					 */
+					
 					_finalDir = _insWallTemp.image_angle;
-					
-					/* 检测在墙体的上下面还是左右面 | Check whether on the top/bottom or left/right of the wall */
-					
-					_xTemp = lengthdir_x(_toWallDis, _toWallDir);
-					_yTemp = lengthdir_y(_toWallDis, _toWallDir);
 					
 					_insWallTemp.image_angle = 0;
 					
-					if(RangeInRange(
-						_insWallTemp.x + lengthdir_x(point_distance(_insWallTemp.x, _insWallTemp.y, bbox_left, y), point_direction(_insWallTemp.x, _insWallTemp.y, bbox_left, y) - _finalDir),
-						_insWallTemp.x + lengthdir_x(point_distance(_insWallTemp.x, _insWallTemp.y, bbox_right, y), point_direction(_insWallTemp.x, _insWallTemp.y, bbox_right, y) - _finalDir),
-						_insWallTemp.bbox_left, _insWallTemp.bbox_right
-						)) {
-						// 上下面 | top/bottom
+					_toWallDisLT = point_distance(_insWallTemp.x, _insWallTemp.y, bbox_left, bbox_top);
+					_toWallDisLB = point_distance(_insWallTemp.x, _insWallTemp.y, bbox_left, bbox_bottom);
+					_toWallDisRT = point_distance(_insWallTemp.x, _insWallTemp.y, bbox_right, bbox_top);
+					_toWallDisRB = point_distance(_insWallTemp.x, _insWallTemp.y, bbox_right, bbox_bottom);
+					_toWallDirLT = point_direction(_insWallTemp.x, _insWallTemp.y, bbox_left, bbox_top) - _finalDir;
+					_toWallDirLB = point_direction(_insWallTemp.x, _insWallTemp.y, bbox_left, bbox_bottom) - _finalDir;
+					_toWallDirRT = point_direction(_insWallTemp.x, _insWallTemp.y, bbox_right, bbox_top) - _finalDir;
+					_toWallDirRB = point_direction(_insWallTemp.x, _insWallTemp.y, bbox_right, bbox_bottom) - _finalDir;
+					
+					/* 0b00 =         | 无          | Nothing
+					 * 0b10 =   "|"   | 在 上下      | On Top & Bottom
+					 * 0b01 =   "-"   | 在 左右      | On Left & Right
+					 * 0b11 =         | 在 凸出的直角 | At right angles protruding
+					 */
+					_side =
+					((
+						RangeInRange(
+							_insWallTemp.x + lengthdir_x(_toWallDisLT, _toWallDirLT),
+							_insWallTemp.x + lengthdir_x(_toWallDisRB, _toWallDirRB),
+							_insWallTemp.bbox_left, _insWallTemp.bbox_right
+						) | RangeInRange(
+							_insWallTemp.x + lengthdir_x(_toWallDisLB, _toWallDirLB),
+							_insWallTemp.x + lengthdir_x(_toWallDisRT, _toWallDirRT),
+							_insWallTemp.bbox_left, _insWallTemp.bbox_right
+						)
+					) << 1)
+					|
+					((
+						RangeInRange(
+							_insWallTemp.y + lengthdir_y(_toWallDisLT, _toWallDirLT),
+							_insWallTemp.y + lengthdir_y(_toWallDisRB, _toWallDirRB),
+							_insWallTemp.bbox_top, _insWallTemp.bbox_bottom
+						) | RangeInRange(
+							_insWallTemp.y + lengthdir_y(_toWallDisLB, _toWallDirLB),
+							_insWallTemp.y + lengthdir_y(_toWallDisRT, _toWallDirRT),
+							_insWallTemp.bbox_top, _insWallTemp.bbox_bottom
+						)
+					)/* << 0 */);
+					
+					_insWallTemp.image_angle = _finalDir;
+					
+					if(_side == 0b10) {
+						// "|" | 在 上下 | On Top & Bottom
 						
-						_insWallTemp.image_angle = _finalDir;
+						// 啥也不干 | Do nothing
 						
-					} else {
-						// 左右面 | left/right
-						
-						_insWallTemp.image_angle = _finalDir;
+					} else if(_side == 0b01) {
+						// "-" | 在 左右 | On Left & Right
 						
 						_finalDir += 90;
+						
+					} else {
+						// 在 凸出的直角 | At right angles protruding
+						
+						_xTemp = _x;
+						_yTemp = _y;
+						
+						_x = __ZMovementCollideX(_x, _y, _z, _xDir * _remainStep, _xDir, _objWall);
+						_y = __ZMovementCollideY(_x, _y, _z, _yDir * _remainStep, _yDir, _objWall);
+						
+						_remainStep -= point_distance(_x, _y, _xTemp, _yTemp);
+						
+						if(_remainStep < 0) {
+							_remainStep = 0;
+						}
+						
+						continue;
+						// 不参与后续的计算 | Not participating in subsequent calculations
+						
 					}
 					
 					/* -------------------------------------- */
